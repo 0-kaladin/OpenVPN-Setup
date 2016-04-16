@@ -1,7 +1,7 @@
 client
 dev tun
 proto udp
-remote PUBLICIP 1194
+remote IPv4pub 1194
 resolv-retry infinite
 nobind
 persist-key
