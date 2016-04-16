@@ -67,11 +67,13 @@ echo ":::"
     $SUDO rm -rf /home/$INSTALL_USER/ovpns &> /dev/null
 
     $SUDO rm -rf /var/log/*pivpn* &> /dev/null
+    $SUDO rm -rf /var/log/*openvpn* &> /dev/null
+    $SUDO rm -rf /etc/openvpn &> /dev/null
     $SUDO rm /usr/local/bin/pivpn &> /dev/null
     $SUDO rm /etc/bash_completion.d/pivpn
 
     # Disable IPv4 forwarding
-    sed -i '/net.ipv4.ip_forward=1/c\
+    sed -i '/net.ipv4.ip_forward=1/c\#net.ipv4.ip_forward=1' /etc/sysctl.conf
     sysctl -p
     
     echo ":::"

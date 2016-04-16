@@ -55,7 +55,8 @@ else
 fi
 
 # Get user that ran root
-USER=$(logname)
+USER=$(who am i | awk '{print $1}')
+echo "::: User running script is: $USER."
 
 ####### FUNCTIONS ##########
 spinner()
@@ -351,8 +352,8 @@ update_repo() {
 
 confOpenVPN () {
     # Ask user for desired level of encryption
-    ENCRYPT=$(whiptail --backtitle "Setup OpenVPN" --title "Encryption Strength" --radiolist "Choose your desired level \
-    of encryption:" $r $c 2 \
+    ENCRYPT=$(whiptail --backtitle "Setup OpenVPN" --title "Encryption Strength" --radiolist \
+    "Choose your desired level of encryption:" $r $c 2 \
     "1024" "Use 1024-bit encryption. Faster to set up, but less secure." OFF \
     "2048" "Use 2048-bit encryption. Slower to set up, but more secure." ON 3>&1 1>&2 2>&3)
 
@@ -376,8 +377,9 @@ confOpenVPN () {
     # Build the certificate authority
     ./build-ca < /etc/.pivpn/ca_info.txt
 
-    whiptail --title "Setup OpenVPN" --msgbox "You will now be asked for identifying \
-    information for the server. Press 'Enter' to skip a field." $r $c
+    whiptail --title "Setup OpenVPN" --msgbox \
+    "You will now be asked for identifying information for the server." \ 
+    "Press 'Enter' to skip a field." $r $c
 
     # Build the server
     ./build-key-server server
@@ -389,7 +391,7 @@ confOpenVPN () {
     openvpn --genkey --secret keys/ta.key
 
     # Write config file for server using the template .txt file
-    /etc/.pivpn/server_config.txt >/etc/openvpn/server.conf
+    cp /etc/.pivpn/server_config.txt /etc/openvpn/server.conf
     if [ $ENCRYPT = 2048 ]; then
         sed -i 's:dh1024:dh2048:' /etc/openvpn/server.conf
     fi
@@ -397,8 +399,7 @@ confOpenVPN () {
 
 confNetwork() {
     # Enable forwarding of internet traffic
-    sed -i '/#net.ipv4.ip_forward=1/c\
-    net.ipv4.ip_forward=1' /etc/sysctl.conf
+    sed -i '/#net.ipv4.ip_forward=1/c\net.ipv4.ip_forward=1' /etc/sysctl.conf
     $SUDO sysctl -p
 
     # Write script to run openvpn and allow it through firewall on boot using the template .txt file
