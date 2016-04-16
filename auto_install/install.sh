@@ -15,7 +15,7 @@
 tmpLog=/tmp/pivpn-install.log
 instalLogLoc=/etc/pivpn/install.log
 
-pivpnGitUrl="https://github.com/StarshipEngineer/OpenVPN-Setup.git"
+pivpnGitUrl="https://github.com/0-kaladin/OpenVPN-Setup.git"
 pivpnFilesDir="/etc/.pivpn"
 
 
@@ -55,7 +55,7 @@ else
 fi
 
 # Get user that ran root
-USER="$(logname)"
+USER=$(logname)
 
 ####### FUNCTIONS ##########
 spinner()
@@ -75,7 +75,7 @@ spinner()
 
 welcomeDialogs() {
     # Display the welcome dialog
-    whiptail --msgbox --backtitle "Welcome" --title "PiVPN automated installer" "This installer will transform your Raspberry Pi into an openvpn server!" $r $c
+    whiptail --msgbox --backtitle "Welcome" --title "PiVPN Automated Installer" "This installer will transform your Raspberry Pi into an openvpn server!" $r $c
 
     # Explain the need for a static address
     whiptail --msgbox --backtitle "Initiating network interface" --title "Static IP Needed" "The PiVPN is a SERVER so it needs a STATIC IP ADDRESS to function properly.
@@ -351,11 +351,10 @@ update_repo() {
 
 confOpenVPN () {
     # Ask user for desired level of encryption
-    ENCRYPT=$(whiptail --title "Setup OpenVPN" --menu "Choose your desired level \
+    ENCRYPT=$(whiptail --backtitle "Setup OpenVPN" --title "Encryption Strength" --radiolist "Choose your desired level \
     of encryption:" $r $c 2 \
-    "1024" "Use 1024-bit encryption. This is faster to set up, but less secure." \
-    "2048" "Use 2048-bit encryption. This is much slower to set up, but more secure." \
-    3>&2 2>&1 1>&3)
+    "1024" "Use 1024-bit encryption. Faster to set up, but less secure." OFF \
+    "2048" "Use 2048-bit encryption. Slower to set up, but more secure." ON 3>&1 1>&2 2>&3)
 
     # Copy the easy-rsa files to a directory inside the new openvpn directory
     cp -r /usr/share/easy-rsa /etc/openvpn
@@ -364,7 +363,7 @@ confOpenVPN () {
     # And change from default 1024 encryption if desired
     cd /etc/openvpn/easy-rsa
     sed -i 's:"`pwd`":"/etc/openvpn/easy-rsa":' vars
-    if [ $ENCRYPT = 1024 ]; then
+    if [[ $ENCRYPT -eq "1024" ]]; then
         sed -i 's:KEY_SIZE=2048:KEY_SIZE=1024:' vars
     fi
 
