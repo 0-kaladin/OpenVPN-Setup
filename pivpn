@@ -6,7 +6,7 @@ if [[ ! $EUID -eq 0 ]];then
 #else
     #echo "::: Sudo will be used for this tool."
   # Check if it is actually installed
-  # If it isn't, exit because the pihole cannot be invoked without privileges.
+  # If it isn't, exit because the pivpn cannot be invoked without privileges.
   if [[ $(dpkg-query -s sudo) ]];then
         export SUDO="sudo"
   else
@@ -16,22 +16,22 @@ if [[ ! $EUID -eq 0 ]];then
 fi
 
 function makeOVPNFunc {
-    $SUDO /opt/pihole/makeOVPN.sh "$@"
+    $SUDO /opt/pivpn/makeOVPN.sh
     exit 1
 }
 
 function debugFunc {
-    $SUDO /opt/pihole/pivpnDebug.sh
+    $SUDO /opt/pivpn/pivpnDebug.sh
     exit 1
 }
 
 function removeOVPNFunc {
-    $SUDO /opt/pihole/removeOVPN.sh
+    $SUDO /opt/pivpn/removeOVPN.sh
     exit 1
 }
 
 function uninstallFunc {
-    $SUDO /opt/pihole/uninstall.sh
+    $SUDO /opt/pivpn/uninstall.sh
     exit 1
 }
 
