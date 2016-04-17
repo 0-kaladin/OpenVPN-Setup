@@ -35,6 +35,7 @@ IPv4addr=$(ip -o -f inet addr show dev "$IPv4dev" | awk '{print $4}' | awk 'END 
 IPv4gw=$(ip route get 8.8.8.8 | awk '{print $3}')
 
 availableInterfaces=$(ip -o link | awk '{print $2}' | grep -v "lo" | cut -d':' -f1)
+availableUsers=$(awk -F':' '$3>=500 && $3<=60000 {print $1}' /etc/passwd)
 dhcpcdFile=/etc/dhcpcd.conf
 
 ######## FIRST CHECK ########
@@ -53,10 +54,6 @@ else
         exit 1
     fi
 fi
-
-# Get user that ran root
-USER=$(who am i | awk '{print $1}')
-echo "::: User running script is: $USER."
 
 ####### FUNCTIONS ##########
 spinner()
@@ -82,6 +79,40 @@ welcomeDialogs() {
     whiptail --msgbox --backtitle "Initiating network interface" --title "Static IP Needed" "The PiVPN is a SERVER so it needs a STATIC IP ADDRESS to function properly.
     
 In the next section, you can choose to use your current network settings (DHCP) or to manually edit them." $r $c
+}
+
+chooseUser() {
+    # Explain the local user
+    whiptail --msgbox --backtitle "Parsing User List" --title "Local Users" "Choose a local user that will hold your ovpn configurations." $r $c
+
+    userArray=()
+    firstloop=1
+
+    while read -r line
+    do
+        mode="OFF"
+        if [[ $firstloop -eq 1 ]]; then
+            firstloop=0
+            mode="ON"
+        fi
+        userArray+=("$line" "available" "$mode")
+    done <<< "$availableUsers"
+
+    # Find out how many users are available to choose from
+    userCount=$(echo "$availableUsers" | wc -l)
+    chooseUserCmd=(whiptail --title "Choose A User" --separate-output --radiolist "Choose:" $r $c $userCount)
+    chooseUserOptions=$("${chooseUserCmd[@]}" "${userArray[@]}" 2>&1 >/dev/tty)
+    if [[ $? = 0 ]]; then
+        for desiredUser in $chooseUserOptions
+        do
+            pivpnUser=$desiredUser
+            echo "::: Using User: $pivpnUser"
+            echo "${pivpnUser}" > /tmp/pivpnUSR
+        done
+    else
+        echo "::: Cancel selected, exiting...."
+        exit 1
+    fi
 }
 
 
@@ -133,7 +164,6 @@ chooseInterface() {
         echo "::: Cancel selected, exiting...."
         exit 1
     fi
-
 }
 
 getStaticIPv4Settings() {
@@ -236,7 +266,7 @@ installScripts() {
     $SUDO echo -n "::: Installing scripts to /opt/pivpn..."
     if [ ! -d /opt/pivpn ]; then
         $SUDO mkdir /opt/pivpn
-        $SUDO chown "$USER":root /opt/pivpn
+        $SUDO chown "$pivpnUser":root /opt/pivpn
         $SUDO chmod u+srwx /opt/pivpn
     fi
     $SUDO cp /etc/.pivpn/scripts/makeOVPN.sh /opt/pivpn/makeOVPN.sh
@@ -357,6 +387,11 @@ confOpenVPN () {
     "1024" "Use 1024-bit encryption. Faster to set up, but less secure." OFF \
     "2048" "Use 2048-bit encryption. Slower to set up, but more secure." ON 3>&1 1>&2 2>&3)
 
+    exitstatus=$?
+    if [ $exitstatus != 0 ]; then
+        echo "::: Cancel selected. Exiting..."
+        exit 1
+    fi
     # Copy the easy-rsa files to a directory inside the new openvpn directory
     cp -r /usr/share/easy-rsa /etc/openvpn
 
@@ -409,10 +444,10 @@ confNetwork() {
 
 confOVPN() {
     IPv4pub=$(dig +short myip.opendns.com @resolver1.opendns.com)
-    echo $USER > /etc/pivpn/INSTALL_USER
+    $SUDO cp /tmp/pivpnUSR /etc/pivpn/INSTALL_USER
     sed 's/IPv4pub/'$IPv4pub'/' </etc/.pivpn/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt
-    mkdir /home/$USER/ovpns
-    chmod 0777 -R /home/$USER/ovpns
+    mkdir /home/$pivpnUser/ovpns
+    chmod 0777 -R /home/$pivpnUser/ovpns
 }
 
 installPiVPN() {
@@ -442,6 +477,11 @@ verifyFreeDiskSpace
 
 # Find interfaces and let the user choose one
 chooseInterface
+getStaticIPv4Settings
+setStaticIPv4
+
+# Choose the user for the ovpns
+chooseUser
 
 # Install and log everything to a file
 installPiVPN | tee $tmpLog

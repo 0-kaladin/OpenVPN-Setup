@@ -4,7 +4,13 @@ _pivpn()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="debug add-client makeovpn removeovpn revoke-client uninstall help"
+    opts="debug add revoke uninstall help"
+
+    if [[ ${cur} == -* ]] ; then
+        opts="-a -d -r -h -u"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
 
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     return 0
