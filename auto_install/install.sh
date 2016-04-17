@@ -443,7 +443,32 @@ confNetwork() {
 confOVPN() {
     IPv4pub=$(dig +short myip.opendns.com @resolver1.opendns.com)
     $SUDO cp /tmp/pivpnUSR /etc/pivpn/INSTALL_USER
-    sed 's/IPv4pub/'$IPv4pub'/' </etc/.pivpn/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt
+
+    METH=$(whiptail --title "Public IP or DNS" --radiolist "Will clients use a Public IP or DNS?" $r $c 2 \
+    "$IPv4pub" "Use this public IP" "ON" \
+    "DNS Entry" "Use a public DNS" "OFF" 3>&1 1>&2 2>&3) 
+    
+    exitstatus=$?
+    if [ $exitstatus != 0 ]; then
+    echo "::: Cancel selected. Exiting..."
+        exit 1
+    fi
+
+
+    if [ "$METH" == "$IPv4pub" ]; then
+        sed 's/IPv4pub/'$IPv4pub'/' </etc/.pivpn/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt
+    else 
+        PUBLICDNS=$(whiptail --title "PiVPN Setup" --inputbox "What is the public DNS name of this Raspberry Pi?" $r $c 3>&1 1>&2 2>&3)
+        exitstatus=$?
+        if [ $exitstatus = 0 ]; then
+            sed 's/IPv4pub/'$PUBLICDNS'/' </etc/.pivpn/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt
+            whiptail --title "Setup OpenVPN" --infobox "Using PUBLIC DNS: $PUBLICDNS" $r $c
+        else
+            whiptail --title "Setup OpenVPN" --infobox "Cancelled" $r $c
+            exit 1
+        fi
+    fi
+
     mkdir /home/$pivpnUser/ovpns
     chmod 0777 -R /home/$pivpnUser/ovpns
 }
@@ -482,10 +507,10 @@ setStaticIPv4
 chooseUser
 
 # Install and log everything to a file
-installPiVPN | tee $tmpLog
+installPiVPN
 
 # Move the log file into /etc/pivpn for storage
-$SUDO mv $tmpLog $installLogLoc
+#$SUDO mv $tmpLog $installLogLoc
 
 displayFinalMessage
 
