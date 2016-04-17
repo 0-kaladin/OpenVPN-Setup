@@ -413,9 +413,10 @@ confOpenVPN () {
     ./build-ca < /etc/.pivpn/ca_info.txt
 
     whiptail --msgbox --backtitle "Setup OpenVPN" --title "Server Information" "You will now be asked for identifying information for the server.  Press 'Enter' to skip a field." $r $c
+    # can export env variables here for users to provide. export KEY_EMAIL will set email field for example.
 
     # Build the server
-    ./build-key-server server
+    ./build-key-server --batch server
 
     # Generate Diffie-Hellman key exchange
     ./build-dh
