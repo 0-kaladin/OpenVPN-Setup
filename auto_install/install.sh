@@ -277,7 +277,7 @@ installScripts() {
     $SUDO cp /etc/.pivpn/pivpn /usr/local/bin/pivpn
     $SUDO chmod 0755 /usr/local/bin/pivpn
     $SUDO cp /etc/.pivpn/scripts/bash-completion /etc/bash_completion.d/pivpn
-    . /etc/bash_completion.d/pivpn
+    source /etc/bash_completion.d/pivpn
 
     $SUDO echo " done."
 }
@@ -487,7 +487,7 @@ installPiVPN() {
 
 displayFinalMessage() {
     # Final completion message to user
-    whiptail --msgbox --backtitle "Make it so." --title "Installation Complete!" "Now run 'pivpn add-client' to create the ovpn profiles. 
+    whiptail --msgbox --backtitle "Make it so." --title "Installation Complete!" "Now run 'pivpn add' to create the ovpn profiles. 
 Run 'pivpn help' to see what else you can do!
 The install log is in /etc/pivpn." $r $c
 }

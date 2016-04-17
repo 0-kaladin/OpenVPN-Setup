@@ -15,7 +15,7 @@ read NAME
  
 #Build the client key and then encrypt the key
 cd /etc/openvpn/easy-rsa
-source ./vars
+source /etc/openvpn/easy-rsa/vars
 ./build-key-pass $NAME
 cd keys
 openssl rsa -in $NAME$OKEY -des3 -out $NAME$KEY
