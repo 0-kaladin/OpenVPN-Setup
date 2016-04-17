@@ -42,7 +42,9 @@ echo ":::"
             while true; do
                 read -rp "::: Do you wish to remove $i from your system? [y/n]: " yn
                 case $yn in
-                    [Yy]* ) printf ":::\tRemoving %s..." "$i"; $SUDO apt-get -y remove --purge "$i" &> /dev/null & spinner $!; printf "done!\n"; break;;
+                    [Yy]* ) printf ":::\tRemoving %s..." "$i"; $SUDO apt-get -y remove --purge "$i" &> /dev/null & spinner $!; printf "done!\n"; 
+                            if [ "$i" == "openvpn" ]; then UINST_OVPN=1 ; fi
+                            break;;
                     [Nn]* ) printf ":::\tSkipping %s" "$i\n"; break;;
                     * ) printf "::: You must answer yes or no!\n";;
                 esac
@@ -68,7 +70,9 @@ echo ":::"
 
     $SUDO rm -rf /var/log/*pivpn* &> /dev/null
     $SUDO rm -rf /var/log/*openvpn* &> /dev/null
-    $SUDO rm -rf /etc/openvpn &> /dev/null
+    if [[ $UINST_OVPN = 1 ]]; then
+        $SUDO rm -rf /etc/openvpn &> /dev/null
+    fi
     $SUDO rm /usr/local/bin/pivpn &> /dev/null
     $SUDO rm /etc/bash_completion.d/pivpn
 
