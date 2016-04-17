@@ -1,4 +1,4 @@
-e!/usr/bin/env bash
+#!/usr/bin/env bash
 # PiVPN: Uninstall Script
 
 # Must be root to uninstall

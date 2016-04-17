@@ -412,9 +412,7 @@ confOpenVPN () {
     # Build the certificate authority
     ./build-ca < /etc/.pivpn/ca_info.txt
 
-    whiptail --title "Setup OpenVPN" --msgbox \
-    "You will now be asked for identifying information for the server." \ 
-    "Press 'Enter' to skip a field." $r $c
+    whiptail --msgbox --backtitle "Setup OpenVPN" --title "Server Information" "You will now be asked for identifying information for the server.  Press 'Enter' to skip a field." $r $c
 
     # Build the server
     ./build-key-server server
