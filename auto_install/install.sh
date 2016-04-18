@@ -425,7 +425,8 @@ confOpenVPN () {
     openvpn --genkey --secret keys/ta.key
 
     # Write config file for server using the template .txt file
-    cp /etc/.pivpn/server_config.txt /etc/openvpn/server.conf
+    LOCALIP=$(ifconfig $pivpnInterface | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
+    sed 's/LOCALIP/'$LOCALIP'/' </home/pi/OpenVPN-Setup/server_config.txt >/etc/openvpn/server.conf
     if [ $ENCRYPT = 2048 ]; then
         sed -i 's:dh1024:dh2048:' /etc/openvpn/server.conf
     fi
@@ -490,6 +491,10 @@ displayFinalMessage() {
     whiptail --msgbox --backtitle "Make it so." --title "Installation Complete!" "Now run 'pivpn add' to create the ovpn profiles. 
 Run 'pivpn help' to see what else you can do!
 The install log is in /etc/pivpn." $r $c
+    if (whiptail --title "Reboot" --yesno --defaultno "It is strongly recommended you reboot after installation.  Would you like to reboot now?" $r $c); then
+        whiptail --title "Rebooting" --msgbox "The system will now reboot." $r $c
+        shutdown -r now
+    fi
 }
 
 ######## SCRIPT ############
@@ -515,6 +520,4 @@ installPiVPN
 
 displayFinalMessage
 
-echo -n "::: Restarting services..."
-$SUDO service openvpn restart
-echo " done."
+echo -n "::: Install Complete..."

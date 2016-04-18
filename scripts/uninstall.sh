@@ -18,6 +18,14 @@ fi
 
 INSTALL_USER=$(cat /etc/pivpn/INSTALL_USER)
 
+# Find the rows and columns
+rows=$(tput lines)
+columns=$(tput cols)
+
+# Divide by two so the dialogs take up half of the screen, which looks nice.
+r=$(( rows / 2 ))
+c=$(( columns / 2 ))
+
 spinner()
 {
     local pid=$1
@@ -85,13 +93,20 @@ echo ":::"
     printf "::: Reinstall by simpling running\n:::\n:::\tcurl -L vigilcode.com/pivpnsetup | bash\n:::\n::: at any time!\n:::\n"
 }
 
+function askreboot() {
+    if (whiptail --title "Reboot" --yesno --defaultno "It is strongly recommended you reboot after installation.  Would you like to reboot now?" $r $c); then
+        whiptail --title "Rebooting" --msgbox "The system will now reboot." $r $c
+        shutdown -r now
+    fi
+}
+
 ######### SCRIPT ###########
 echo "::: Preparing to remove packages, be sure that each may be safely removed depending on your operating system."
 echo "::: (SAFE TO REMOVE ALL ON RASPBIAN)"
 while true; do
     read -rp "::: Do you wish to completely remove PiVPN configuration and installed packages from your system? (You will be prompted for each package) [y/n]: " yn
     case $yn in
-        [Yy]* ) removeAll; break;;
+        [Yy]* ) removeAll; askreboot; break;;
     
         [Nn]* ) printf "::: Not removing anything, exiting...\n"; break;;
     esac
