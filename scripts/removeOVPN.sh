@@ -9,7 +9,7 @@ read NAME
 cd /etc/openvpn/easy-rsa
 source /etc/openvpn/easy-rsa/vars
 
-./revoke-all $NAME
-echo "::: Certificate revoked, removing ovpns from /home/$INSTALL_USER/ovpns
+./revoke-full $NAME
+echo "::: Certificate revoked, removing ovpns from /home/$INSTALL_USER/ovpns"
 rm /home/$INSTALL_USER/ovpns/$NAME.ovpn
 
