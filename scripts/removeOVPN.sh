@@ -35,11 +35,13 @@ source /etc/openvpn/easy-rsa/vars
 ./revoke-full $NAME
 echo "::: Certificate revoked, removing ovpns from /home/$INSTALL_USER/ovpns"
 rm /home/$INSTALL_USER/ovpns/$NAME.ovpn
+cp /etc/openvpn/easy-rsa/keys/crl.pem /etc/openvpn/crl.pem
+echo "::: Completed!"
 
 if [ $REVOKE_STATUS == 0 ]; then
         echo 1 > /etc/pivpn/REVOKE_STATUS
         printf "\nThis seems to be the first time you have revoked a cert.\n"
         printf "We are adding the CRL to the server.conf and restarting openvpn.\n"
-        sed -i '/#crl-verify/c\crl-verify /etc/openvpn/easy-rsa/keys/crl.pem' /etc/openvpn/server.conf
+        sed -i '/#crl-verify/c\crl-verify /etc/openvpn/crl.pem' /etc/openvpn/server.conf
         systemctl restart openvpn.service
 fi

@@ -528,4 +528,4 @@ installPiVPN
 
 displayFinalMessage
 
-echo -n "::: Install Complete..."
+echo "::: Install Complete..."
