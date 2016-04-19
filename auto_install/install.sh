@@ -385,8 +385,8 @@ confOpenVPN () {
     # Ask user for desired level of encryption
     ENCRYPT=$(whiptail --backtitle "Setup OpenVPN" --title "Encryption Strength" --radiolist \
     "Choose your desired level of encryption:" $r $c 2 \
-    "1024" "Use 1024-bit encryption. Faster to set up, but less secure." OFF \
-    "2048" "Use 2048-bit encryption. Slower to set up, but more secure." ON 3>&1 1>&2 2>&3)
+    "2048" "Use 2048-bit encryption. Slower to set up, but more secure." ON \
+    "1024" "Use 1024-bit encryption. Faster to set up, but less secure." OFF 3>&1 1>&2 2>&3)
 
     exitstatus=$?
     if [ $exitstatus != 0 ]; then
@@ -427,7 +427,7 @@ confOpenVPN () {
 
     # Write config file for server using the template .txt file
     LOCALIP=$(ifconfig $pivpnInterface | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
-    sed 's/LOCALIP/'$LOCALIP'/' </home/pi/OpenVPN-Setup/server_config.txt >/etc/openvpn/server.conf
+    sed 's/LOCALIP/'$LOCALIP'/' </etc/.pivpn/server_config.txt >/etc/openvpn/server.conf
     if [ $ENCRYPT = 2048 ]; then
         sed -i 's:dh1024:dh2048:' /etc/openvpn/server.conf
     fi
@@ -446,6 +446,9 @@ confNetwork() {
 confOVPN() {
     IPv4pub=$(dig +short myip.opendns.com @resolver1.opendns.com)
     $SUDO cp /tmp/pivpnUSR /etc/pivpn/INSTALL_USER
+
+    # Set status that no certs have been revoked
+    $SUDO echo 0 > /etc/pivpn/REVOKE_STATUS
 
     METH=$(whiptail --title "Public IP or DNS" --radiolist "Will clients use a Public IP or DNS?" $r $c 2 \
     "$IPv4pub" "Use this public IP" "ON" \
@@ -489,11 +492,15 @@ installPiVPN() {
 
 displayFinalMessage() {
     # Final completion message to user
+    $SUDO systemctl enable openvpn.service
+    $SUDO systemctl start openvpn.service
     whiptail --msgbox --backtitle "Make it so." --title "Installation Complete!" "Now run 'pivpn add' to create the ovpn profiles. 
 Run 'pivpn help' to see what else you can do!
 The install log is in /etc/pivpn." $r $c
     if (whiptail --title "Reboot" --yesno --defaultno "It is strongly recommended you reboot after installation.  Would you like to reboot now?" $r $c); then
         whiptail --title "Rebooting" --msgbox "The system will now reboot." $r $c
+        printf "\nRebooting system...\n"
+        sleep 3
         shutdown -r now
     fi
 }
