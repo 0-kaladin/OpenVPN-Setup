@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # PiVPN: list clients script
 
+INDEX="/etc/openvpn/easy-rsa/keys/index.txt"
+printf "\n"
+if [ ! -f $INDEX ]; then
+        printf "The file: $INDEX \n"
+        printf "Was not Found!\n"
+        exit 1
+fi
+
 printf "\n"
 printf "\e[1m::: Certificate Status List :::\e[0m\n"
 printf " ::\e[4m  Status  \e[0m||\e[4m   Name   \e[0m:: \n"
@@ -19,5 +27,5 @@ while read -r line || [[ -n "$line" ]]; do
         var=${var#CN=}
         printf "  $var\n"
     fi
-done </etc/openvpn/easy-rsa/keys/index.txt
+done <$INDEX
 printf "\n"
